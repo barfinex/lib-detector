@@ -2,7 +2,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { Provider, Type } from '@nestjs/common';
 import { PluginMeta } from '@barfinex/types';
-import { providerName } from '@barfinex/utils/provider-utils';
+import { providerUtils } from '@barfinex/utils';
+
 
 export interface DetectorBundle {
     service: Type<any>;
@@ -145,7 +146,7 @@ export default function dynamicDetector(
         console.log(
             `[dynamicDetector] service: ${servicePath}\n` +
             `[dynamicDetector] config: ${configPath ?? '(not found)'}\n` +
-            `[dynamicDetector] providers: [${providers.map(providerName).join(', ')}]\n` +
+            `[dynamicDetector] providers: [${providers.map(providerUtils.providerName).join(', ')}]\n` +
             `📦 Loaded plugin modules: [${pluginModules.map((m) => m?.name).join(', ')}]\n` +
             `📝 Loaded plugin metas: [${pluginMetas.map((m) => m?.title).join(', ')}]`,
         );

@@ -1,6 +1,6 @@
 import type { PluginInterface, Account, PluginContext, Symbol, Order } from '@barfinex/types';
 
-export function findPlugin<T extends PluginInterface = PluginInterface>(key: string): T | undefined {
+export function findPlugin<T extends PluginInterface = PluginInterface>(this: any, key: string): T | undefined {
   console.log('🔍 findPlugin: looking for', key);
   console.log('this.plugins in Finding plugin:', this.plugins);
 

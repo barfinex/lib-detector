@@ -20,7 +20,7 @@ import {
   TradeSide,
   Position,
 } from '@barfinex/types';
-import { DetectorService } from '@barfinex/detector';
+import { DetectorService } from '../detector.service';
 
 /** Внутреннее представление карты индикаторов */
 type IndicatorMap = Record<
@@ -274,14 +274,15 @@ export async function onTradeHandler(
       this.pluginDriverService.asyncReduce(PluginHook.onTrade, null, trade),
       (async () => {
         const updateCandleByTrade = await this.updateCandleByTrade({ trade });
-        updateCandleByTrade.forEach(({ status, candle }) => {
-          if (status === CandleActionStatus.update || status === 'update') {
-            this.onCandleUpdate(candle, trade, connectorType, marketType);
-          } else if (status === CandleActionStatus.create || status === 'create') {
-            this.onCandleClose(candle, connectorType, marketType);
-            this.onCandleOpen(candle, connectorType, marketType);
-          }
-        });
+        (updateCandleByTrade as Array<{ status: CandleActionStatus; candle: Candle }>)
+          .forEach(({ status, candle }) => {
+            if (status === CandleActionStatus.update) {
+              this.onCandleUpdate(candle, trade, connectorType, marketType);
+            } else if (status === CandleActionStatus.create) {
+              this.onCandleClose(candle, connectorType, marketType);
+              this.onCandleOpen(candle, connectorType, marketType);
+            }
+          });
       })(),
     ]);
 
@@ -349,7 +350,7 @@ export async function onAccountUpdateHandler(
     if (!activeConnector) continue;
 
     const targetAccount = this.accounts.find(
-      (a) =>
+      (a: { connectorType: ConnectorType; marketType: any; }) =>
         a.connectorType === activeConnector.connectorType &&
         a.marketType === accountEvent.options.marketType,
     );

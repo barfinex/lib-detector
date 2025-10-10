@@ -56,7 +56,7 @@ export function ensureHistoryReady(this: any): boolean {
   }
 
   if (this.__historyReadyState !== true) {
-    const symbols = (this.options.symbols || []).map(s => s.name).join(',');
+    const symbols = (this.options.symbols || []).map((s: { name: any; }) => s.name).join(',');
     const intervals = (this.options.intervals || []).join(',');
     this.logger.log(`[History] ready for symbols=[${symbols}] intervals=[${intervals}]`);
     this.__historyReadyState = true;

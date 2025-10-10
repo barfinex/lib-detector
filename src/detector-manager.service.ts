@@ -167,6 +167,10 @@ export class DetectorManagerService implements OnModuleInit {
       await fs.writeFile(filePath, res.data);
       this.logger.log(`✅ Plugin bundle saved: ${filePath}`);
 
+      if (!plugin.studioGuid) {
+        throw new Error("plugin.studioGuid is required for dynamic plugin load");
+      }
+
       await this.loadDynamicPlugin(plugin.studioGuid, filePath);
 
       return { success: true, message: `Plugin ${plugin.title} installed` };

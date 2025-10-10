@@ -2,7 +2,7 @@
   "name": "@barfinex/detector",
   "version": "0.0.0-development",
   "private": false,
-  "description": "Shared Detector for Barfinex ecosystem",
+  "description": "Detector module for the Barfinex ecosystem. Provides plugin lifecycle management, real-time market data processing, trade/order monitoring, and integration with Redis, MongoDB, and external services.",
   "author": "Barfinex",
   "license": "MIT",
   "homepage": "https://github.com/barfinex/lib-detector#readme",
@@ -23,6 +23,38 @@
     "clean": "rimraf dist",
     "release": "semantic-release"
   },
+  "keywords": [
+    "barfinex",
+    "detector",
+    "trading",
+    "market-data",
+    "plugin",
+    "plugin-management",
+    "nestjs",
+    "nestjs-module",
+    "typescript",
+    "redis",
+    "mongodb",
+    "order",
+    "trade",
+    "candle",
+    "analytics"
+  ],
+  "dependencies": {
+    "@barfinex/types": "workspace:*",
+    "@barfinex/utils": "workspace:*",
+    "@barfinex/connectors": "workspace:*",
+    "@barfinex/orders": "workspace:*",
+    "@barfinex/key": "workspace:*",
+    "@barfinex/plugin-driver": "workspace:*",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "@nestjs/microservices": "^10.0.0",
+    "rxjs": "^7.8.1",
+    "axios": "^1.7.0",
+    "typeorm": "^0.3.20"
+  },
   "devDependencies": {
     "typescript": "^5.6.0",
     "rimraf": "^5.0.0",
@@ -31,7 +63,11 @@
     "@semantic-release/git": "^10.0.0",
     "@semantic-release/github": "^10.0.0",
     "@semantic-release/commit-analyzer": "^13.0.0",
-    "@semantic-release/release-notes-generator": "^14.0.0"
+    "@semantic-release/release-notes-generator": "^14.0.0",
+    "@types/node": "^20.11.30",
+    "@nestjs/axios": "^3.0.0",
+    "@nestjs/swagger": "^7.0.0",
+    "@nestjs/typeorm": "^10.0.0"
   },
   "publishConfig": {
     "access": "public"

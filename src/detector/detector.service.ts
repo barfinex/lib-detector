@@ -44,7 +44,7 @@ import * as Plugins from './internal/detector.plugins';
 import * as Utils from './internal/detector.utils';
 
 // 🔹 маппер для свечей
-import { toDomainCandle } from '@barfinex/utils/candle.mapper';
+// import { candleMapper } from '@barfinex/utils';
 import { DetectorPositionManager } from './internal/detector.position-manager';
 
 @Injectable()
@@ -266,10 +266,10 @@ export abstract class DetectorService {
 
     // 2. Плагины из PluginDriverService
     const driverPlugins = (this.pluginDriverService as any)?.getAllPlugins?.() as PluginInterface[] | undefined;
-    if (driverPlugins?.length > 0) {
-      this.registerPlugins(driverPlugins);
+    if (driverPlugins!.length > 0) {
+      this.registerPlugins(driverPlugins!);
       this.logger.log(
-        `[onModuleInit] Auto-registered ${driverPlugins.length} plugin(s) from PluginDriverService`,
+        `[onModuleInit] Auto-registered ${driverPlugins!.length} plugin(s) from PluginDriverService`,
       );
     } else {
       this.logger.debug(`[onModuleInit] No plugins found in PluginDriverService`);
@@ -549,7 +549,7 @@ export abstract class DetectorService {
   protected onInit() { }
   protected onStart() { }
   protected onTrade(_trade: Trade, _connectorType: ConnectorType, _marketType: MarketType) { }
-  protected onCandleUpdate(_candle: Candle, _trade: Trade, _connectorType: ConnectorType, _marketType: MarketType) { }
+  protected onCandleUpdate(_candle: Candle, _trade: Trade | null, _connectorType: ConnectorType, _marketType: MarketType) { }
   protected onCandleOpen(_candle: Candle, _connectorType: ConnectorType, _marketType: MarketType) { }
   protected onCandleClose(_candle: Candle, _connectorType: ConnectorType, _marketType: MarketType) { }
   protected onOrderBookUpdate(_orderbook: OrderBook, _connectorType: ConnectorType, _marketType: MarketType) { }

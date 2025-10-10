@@ -1,0 +1,29 @@
+{
+    "extends": "./tsconfig.app.json",
+    "compilerOptions": {
+        "composite": true
+    },
+    "include": [
+        "src"
+    ],
+    "references": [
+        {
+            "path": "../types"
+        },
+        {
+            "path": "../utils"
+        },
+        {
+            "path": "../plugin-driver"
+        },
+        {
+            "path": "../orders"
+        },
+        {
+            "path": "../connectors"
+        },
+        {
+            "path": "../key"
+        }
+    ]
+}
