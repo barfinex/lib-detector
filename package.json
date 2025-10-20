@@ -41,12 +41,12 @@
     "analytics"
   ],
   "dependencies": {
-    "@barfinex/types": "workspace:*",
-    "@barfinex/utils": "workspace:*",
-    "@barfinex/connectors": "workspace:*",
-    "@barfinex/orders": "workspace:*",
-    "@barfinex/key": "workspace:*",
-    "@barfinex/plugin-driver": "workspace:*",
+    "@barfinex/types": "*",
+    "@barfinex/utils": "*",
+    "@barfinex/connectors": "*",
+    "@barfinex/orders": "*",
+    "@barfinex/key": "*",
+    "@barfinex/plugin-driver": "*",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/config": "^3.0.0",

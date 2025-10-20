@@ -350,7 +350,7 @@ export async function onAccountUpdateHandler(
     if (!activeConnector) continue;
 
     const targetAccount = this.accounts.find(
-      (a: { connectorType: ConnectorType; marketType: any; }) =>
+      (a) =>
         a.connectorType === activeConnector.connectorType &&
         a.marketType === accountEvent.options.marketType,
     );
