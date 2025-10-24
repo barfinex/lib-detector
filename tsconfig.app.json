@@ -1,92 +1,33 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    /* === базовые параметры компиляции === */
     "target": "ES2020",
     "module": "CommonJS",
     "declaration": true,
     "emitDeclarationOnly": false,
     "rootDir": "./src",
-    "outDir": "../../dist/libs/detector",
-    "declarationDir": "../../dist/libs/detector",
-    "tsBuildInfoFile": "../../dist/libs/detector.tsbuildinfo",
-    "composite": true,
-    /* === строгая типизация === */
+    "outDir": "./dist",
     "strict": true,
     "strictPropertyInitialization": false,
-    /* === совместимость и декораторы (NestJS 10+) === */
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": false,
-    /* === резолвинг и модули === */
     "incremental": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    /* === типы и алиасы === */
-    "types": [
-      "node",
-      "reflect-metadata"
-    ],
-    "baseUrl": "../../",
+    "types": ["node", "reflect-metadata"],
+    "baseUrl": "./",
     "paths": {
-      "@barfinex/types": [
-        "libs/types/src"
-      ],
-      "@barfinex/utils": [
-        "libs/utils/src"
-      ],
-      "@barfinex/utils/*": [
-        "libs/utils/src/*"
-      ],
-      "@barfinex/connectors": [
-        "libs/connectors/src"
-      ],
-      "@barfinex/orders": [
-        "libs/orders/src"
-      ],
-      "@barfinex/key": [
-        "libs/key/src"
-      ],
-      "@barfinex/plugin-driver": [
-        "libs/plugin-driver/src"
-      ],
-      "@barfinex/detector": [
-        "libs/detector/src"
-      ]
+      "@barfinex/types": ["./node_modules/@barfinex/types"],
+      "@barfinex/utils": ["./node_modules/@barfinex/utils"],
+      "@barfinex/connectors": ["./node_modules/@barfinex/connectors"],
+      "@barfinex/orders": ["./node_modules/@barfinex/orders"],
+      "@barfinex/key": ["./node_modules/@barfinex/key"],
+      "@barfinex/plugin-driver": ["./node_modules/@barfinex/plugin-driver"]
     }
   },
-  /* === области включения/исключения === */
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.spec.ts",
-    "**/*.test.ts"
-  ],
-  /* === проектные ссылки (Project References) === */
-  "references": [
-    {
-      "path": "../types"
-    },
-    {
-      "path": "../utils"
-    },
-    {
-      "path": "../connectors"
-    },
-    {
-      "path": "../orders"
-    },
-    {
-      "path": "../plugin-driver"
-    },
-    {
-      "path": "../key"
-    }
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
 }
