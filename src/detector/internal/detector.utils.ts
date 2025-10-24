@@ -1,6 +1,6 @@
 import moment from 'moment';
 import type { Detector } from '@barfinex/types';
-import { DetectorService } from '@barfinex/detector';
+import { DetectorService } from '../detector.service';
 
 export function updateOptions(
     this: DetectorService,
