@@ -16,11 +16,13 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.app.json",
     "clean": "rimraf dist",
+    "build": "tsc -p tsconfig.app.json",
+    "rebuild": "npm run clean && npm run build",
     "release": "semantic-release"
   },
   "keywords": [
@@ -53,24 +55,34 @@
     "@nestjs/microservices": "^10.0.0",
     "rxjs": "^7.8.1",
     "axios": "^1.7.0",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "reflect-metadata": "^0.2.2"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "@nestjs/microservices": "^10.0.0",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "typescript": "^5.6.0",
-    "rimraf": "^5.0.0",
-    "semantic-release": "^24.0.0",
+    "typescript": "^5.6.3",
+    "rimraf": "^5.0.5",
+    "semantic-release": "^24.1.0",
     "@semantic-release/npm": "^12.0.0",
-    "@semantic-release/git": "^10.0.0",
-    "@semantic-release/github": "^10.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.6",
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/release-notes-generator": "^14.0.0",
     "@types/node": "^20.11.30",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/swagger": "^7.0.0",
-    "@nestjs/typeorm": "^10.0.0"
+    "@nestjs/typeorm": "^10.0.0",
+    "reflect-metadata": "^0.2.2"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "release": {
     "branches": [
