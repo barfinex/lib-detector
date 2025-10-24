@@ -6,9 +6,9 @@
     "module": "CommonJS",
     "declaration": true,
     "emitDeclarationOnly": false,
-    "rootDir": "./src", /* только локальные исходники */
-    "outDir": "../../dist/libs/detector", /* общий dist для всей монорепы */
-    "declarationDir": "../../dist/libs/detector", /* декларации рядом с js */
+    "rootDir": "./src",
+    "outDir": "../../dist/libs/detector",
+    "declarationDir": "../../dist/libs/detector",
     "tsBuildInfoFile": "../../dist/libs/detector.tsbuildinfo",
     "composite": true,
     /* === строгая типизация === */
