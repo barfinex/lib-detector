@@ -1,4 +1,4 @@
-import { DetectorService } from '@barfinex/detector';
+import { DetectorService } from '../detector.service';
 import {
   SubscriptionType,
   SubscriptionValue,
