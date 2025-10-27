@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
@@ -6,6 +7,9 @@
     "emitDeclarationOnly": false,
     "rootDir": "./src",
     "outDir": "./dist",
+    "declarationDir": "./dist",
+    "tsBuildInfoFile": "../../dist/libs/detector.tsbuildinfo",
+    "composite": true,
     "strict": true,
     "strictPropertyInitialization": false,
     "esModuleInterop": true,
@@ -14,20 +18,67 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": false,
-    "incremental": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "types": ["node", "reflect-metadata"],
-    "baseUrl": "./",
+    "types": [
+      "node",
+      "reflect-metadata"
+    ],
+    "baseUrl": "../../",
     "paths": {
-      "@barfinex/types": ["./node_modules/@barfinex/types"],
-      "@barfinex/utils": ["./node_modules/@barfinex/utils"],
-      "@barfinex/connectors": ["./node_modules/@barfinex/connectors"],
-      "@barfinex/orders": ["./node_modules/@barfinex/orders"],
-      "@barfinex/key": ["./node_modules/@barfinex/key"],
-      "@barfinex/plugin-driver": ["./node_modules/@barfinex/plugin-driver"]
+      "@barfinex/types": [
+        "libs/types/src"
+      ],
+      "@barfinex/utils": [
+        "libs/utils/src"
+      ],
+      "@barfinex/utils/*": [
+        "libs/utils/src/*"
+      ],
+      "@barfinex/plugin-driver": [
+        "libs/plugin-driver/src"
+      ],
+      "@barfinex/orders": [
+        "libs/orders/src"
+      ],
+      "@barfinex/connectors": [
+        "libs/connectors/src"
+      ],
+      "@barfinex/key": [
+        "libs/key/src"
+      ],
+      "@barfinex/detector": [
+        "libs/detector/src"
+      ]
     }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ],
+  "references": [
+    {
+      "path": "../types"
+    },
+    {
+      "path": "../utils"
+    },
+    {
+      "path": "../plugin-driver"
+    },
+    {
+      "path": "../orders"
+    },
+    {
+      "path": "../connectors"
+    },
+    {
+      "path": "../key"
+    }
+  ]
 }
