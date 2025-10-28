@@ -15,7 +15,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         ConnectorModule,
         KeyModule,
 
-
         // ✅ Подключение MongoDB (единое на всё приложение)
         TypeOrmModule.forRoot({
             type: 'mongodb',

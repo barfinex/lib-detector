@@ -46,12 +46,12 @@
     "analytics"
   ],
   "dependencies": {
-    "@barfinex/types": "latest",
-    "@barfinex/utils": "latest",
-    "@barfinex/plugin-driver": "latest",
-    "@barfinex/orders": "latest",
-    "@barfinex/connectors": "latest",
-    "@barfinex/key": "latest",
+    "@barfinex/types": "*",
+    "@barfinex/utils": "*",
+    "@barfinex/plugin-driver": "*",
+    "@barfinex/orders": "*",
+    "@barfinex/connectors": "*",
+    "@barfinex/key": "*",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/config": "^3.0.0",
