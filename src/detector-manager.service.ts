@@ -29,6 +29,7 @@ import { PluginService } from './plugin.service';
 @Injectable()
 export class DetectorManagerService implements OnModuleInit {
   private readonly logger = new Logger(DetectorManagerService.name);
+
   private activeDetector: DetectorService | null = null;
 
   private pluginsDir = join(process.cwd(), 'plugins');

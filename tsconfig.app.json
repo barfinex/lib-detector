@@ -1,14 +1,14 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
     "declaration": true,
     "emitDeclarationOnly": false,
     "rootDir": "./src",
-    "outDir": "../../dist/libs/detector",
-    "declarationDir": "../../dist/libs/detector",
-    "tsBuildInfoFile": "../../dist/libs/detector.tsbuildinfo",
+    "outDir": "./dist",
+    "declarationDir": "./dist",
+    "tsBuildInfoFile": "./dist.tsbuildinfo",
     "composite": true,
     "strict": true,
     "strictPropertyInitialization": false,
@@ -61,24 +61,4 @@
     "**/*.spec.ts",
     "**/*.test.ts"
   ],
-  "references": [
-    {
-      "path": "../types"
-    },
-    {
-      "path": "../utils"
-    },
-    {
-      "path": "../plugin-driver"
-    },
-    {
-      "path": "../orders"
-    },
-    {
-      "path": "../connectors"
-    },
-    {
-      "path": "../key"
-    }
-  ]
 }
