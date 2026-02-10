@@ -115,7 +115,6 @@ export function getCandleValueStatus(this: any, options: { currentTime: number; 
   const u = (n: number, unit: moment.unitOfTime.DurationConstructor) => moment.utc(currentTime).add(-n, unit).toISOString() >= moment.utc(lastCandleTime).toISOString();
   switch (interval) {
     case 'min1': if (u(1, 'minutes')) { result.isNewCandle = true; result.candleMoment = Number(moment.utc(lastCandleTime).add(1, 'minutes').format('x')); } break;
-    case 'min3': if (u(3, 'minutes')) { result.isNewCandle = true; result.candleMoment = Number(moment.utc(lastCandleTime).add(3, 'minutes').format('x')); } break;
     case 'min5': if (u(5, 'minutes')) { result.isNewCandle = true; result.candleMoment = Number(moment.utc(lastCandleTime).add(5, 'minutes').format('x')); } break;
     case 'min15': if (u(15, 'minutes')) { result.isNewCandle = true; result.candleMoment = Number(moment.utc(lastCandleTime).add(15, 'minutes').format('x')); } break;
     case 'min30': if (u(30, 'minutes')) { result.isNewCandle = true; result.candleMoment = Number(moment.utc(lastCandleTime).add(30, 'minutes').format('x')); } break;

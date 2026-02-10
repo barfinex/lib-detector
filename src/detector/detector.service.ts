@@ -18,7 +18,6 @@ import { buildDetectorConfig, ConnectorType, DetectorConfigInput, MarketType, Or
 import {
   Detector,
   Account,
-  CandleRaw,
   Candle,
   Trade,
   Order,
@@ -69,7 +68,7 @@ export abstract class DetectorService {
   protected pluginsForRegister: any[] = [];
   protected plugins: any[] = [];
   protected lastTrades: { [index: string]: Trade } = {};
-  protected candles: { [symbol: string]: { [interval: string]: CandleRaw[] } } =
+  protected candles: { [symbol: string]: { [interval: string]: Candle[] } } =
     {};
   protected indicators: any = {};
 

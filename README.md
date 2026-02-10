@@ -84,7 +84,7 @@ Join the Barfinex developer community: [t.me/barfinex](https://t.me/barfinex)
 This repository is licensed under the [Apache License 2.0](LICENSE) with additional restrictions.
 
 ### Key Terms:
-1. **Attribution**: Proper credit must be given to the original author, Barfin Network Limited, with a link to the official website: [https://barfin.network/](https://barfin.network/).
+1. **Attribution**: Proper credit must be given to the original author, Barfin Network Limited, with a link to the official website: [https://barfinex.com/](https://barfinex.com/).
 2. **Non-Commercial Use**: The use of this codebase for commercial purposes is prohibited without explicit written permission.
 3. **Display Requirements**: For non-commercial use, the following must be displayed:
    - The name "Barfin Network Limited".
