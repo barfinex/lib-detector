@@ -1,27 +1,21 @@
 # @barfinex/detector
 
-**`@barfinex/detector`** is a core microservice package in the [Barfinex](https://barfinex.com) ecosystem.  
-It provides the **event-driven detection layer** that powers trading strategies, order execution logic, and signal generation across Barfinex services.
+**Event-driven detection layer** of the [Barfinex](https://barfinex.com) ecosystem — the analytics engine that consumes market data from the Provider, runs strategies and plugins, and emits signals for Advisor and Inspector.
 
-This package implements **modular detectors** that listen to real-time market data, analyze conditions, and emit signals for further processing by advisors, order managers, or plugins.
-
----
-
-## 🚀 Purpose
-
-The `@barfinex/detector` package is designed to:
-
-- 📡 **Process real-time data** — candles, trades, orderbooks, and account events.
-- ⚡ **Generate signals** — based on custom rules, indicators, or plugins.
-- 🔌 **Integrate with plugins** — extend detection with runtime-loaded strategies (via `@barfinex/plugin-driver`).
-- 🛠 **Support modular instances** — each detector runs with its own configuration and lifecycle.
-- 🔄 **Bridge with ecosystem** — interacts with `@barfinex/orders`, `@barfinex/connectors`, and `@barfinex/utils`.
+Detector is the component that turns raw candles, trades, and orderbook updates into **actionable signals** and position requests. It runs as a separate service, connects to the event bus (Redis), and can be extended with plugins (e.g. orderflow analytics, trade journal).
 
 ---
 
-## 📦 Installation
+## What it does
 
-To install the package, use npm or yarn:
+- **Real-time processing** — subscribes to Provider channels (candles, trades, orderbook, account/orders) and runs detection logic.
+- **Modular instances** — multiple detector configs and strategies; each instance has its own lifecycle and plugins.
+- **Plugin system** — integrates with `@barfinex/plugin-driver` and plugins like `@barfinex/detector-plugin-orderflow-trade-analytics` and `@barfinex/detector-plugin-trade-journal`.
+- **Signals & metrics** — emits signals to the bus, exposes REST for status and metrics, and works with `@barfinex/orders` and `@barfinex/connectors`.
+
+---
+
+## Installation
 
 ```sh
 npm install @barfinex/detector
@@ -35,58 +29,37 @@ yarn add @barfinex/detector
 
 ---
 
-## 📘 Example Usage
+## What's included
 
-```ts
-import { DetectorService } from '@barfinex/detector';
-import { VolumeFollowConfig } from '@barfinex/detector/instances/volume-follow';
-
-// Initialize detector with configuration
-const detector = new DetectorService({
-  name: 'volume-follow-btc',
-  options: VolumeFollowConfig,
-});
-
-// Start detection loop
-detector.onStart();
-```
+| Export | Purpose |
+|--------|--------|
+| `DetectorModule` / `DetectorCoreModule` | NestJS modules for detector app wiring. |
+| `DetectorService` | Core service: lifecycle, plugins, detection loop. |
+| `DetectorManagerService` | Manages detector instances and config. |
+| `DetectorPluginService` | Plugin registration and execution. |
+| `DetectorController` | REST API for detector operations. |
+| `DetectorPerformanceMetrics` | Performance metrics. |
+| Signal types & helpers | From `./signal`. |
 
 ---
 
-## 📚 What's Included
+## Documentation
 
-The `@barfinex/detector` package includes:
-
-- **DetectorService** — core service orchestrating plugins and detection lifecycle.
-- **Instances** — ready-to-use strategies (e.g., `volume-follow`, `follow-trend`, `empty`, `template`).
-- **Plugins Integration** — via `@barfinex/plugin-driver` and domain-specific plugins like:
-  - `@barfinex/detector-plugin-trade-journal`
-  - `@barfinex/detector-plugin-orderflow-trade-analytics`
-- **Common Utils** — validation, error handling, configuration helpers.
-- **Events** — hooks for lifecycle: `onInit`, `onStart`, `onAccountUpdate`, etc.
+- **Detector** — [Installation detector](https://barfinex.com/docs/installation-detector) — Redis channels, config, connecting to Provider, verifying signals.
+- **Barfinex overview** — [First Steps](https://barfinex.com/docs/first-steps), [Architecture](https://barfinex.com/docs/architecture), [Glossary](https://barfinex.com/docs/glossary).
+- **Provider (data source)** — [Installation provider](https://barfinex.com/docs/installation-provider), [Understanding Provider Logs](https://barfinex.com/docs/installation-provider-logs), [Provider API reference](https://barfinex.com/docs/provider-api).
+- **Studio** — [Terminal Configuration](https://barfinex.com/docs/configuration-studio), [Registering Provider in Studio](https://barfinex.com/docs/configuration-studio-provider).
+- **APIs & signals** — [Detector API reference](https://barfinex.com/docs/detector-api), [Signals context API](https://barfinex.com/docs/signals-context), [Building with the API](https://barfinex.com/docs/frontend-api).
+- **Troubleshooting** — [Typical problems and solutions](https://barfinex.com/docs/troubleshooting).
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions to improve the detection framework:
-
-- 🛠 Add new detection strategies or instances.
-- 🔌 Write plugins to extend detector capabilities.
-- 📈 Share optimizations for handling high-frequency data.
-
-Join the Barfinex developer community: [t.me/barfinex](https://t.me/barfinex)
+New detection strategies and plugin ideas are welcome. Open an issue or PR. Community: [Telegram](https://t.me/barfinex) · [GitHub](https://github.com/barfinex).
 
 ---
 
-## 📜 License
+## License
 
-This repository is licensed under the [Apache License 2.0](LICENSE) with additional restrictions.
-
-### Key Terms:
-1. **Attribution**: Proper credit must be given to the original author, Barfin Network Limited, with a link to the official website: [https://barfinex.com/](https://barfinex.com/).
-2. **Non-Commercial Use**: The use of this codebase for commercial purposes is prohibited without explicit written permission.
-3. **Display Requirements**: For non-commercial use, the following must be displayed:
-   - The name "Barfin Network Limited".
-   - The official logo.
-   - A working link to [https://barfinex.com/](https://barfinex.com/).
+Licensed under the [Apache License 2.0](LICENSE) with additional terms. Attribution to **Barfin Network Limited** and a link to [https://barfinex.com](https://barfinex.com) are required. Commercial use requires explicit permission. See [LICENSE](LICENSE) and the [Barfinex site](https://barfinex.com) for details.
