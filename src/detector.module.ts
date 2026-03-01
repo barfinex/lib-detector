@@ -81,7 +81,7 @@ export class DetectorModule {
                 },
                 { provide: 'PLUGIN_METAS', useValue: finalMetas },
             ],
-            exports: ['DETECTOR_CONFIG', 'DETECTOR_PATH', 'PLUGIN_METAS'],
+            exports: ['DETECTOR_CONFIG', 'DETECTOR_PATH', 'PLUGIN_METAS', DetectorCoreModule],
         };
     }
 }

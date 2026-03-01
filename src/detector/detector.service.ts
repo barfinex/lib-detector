@@ -16,6 +16,7 @@ import { PluginDriverService } from '@barfinex/plugin-driver';
 import { buildDetectorConfig, ConnectorType, DetectorConfigInput, MarketType, OrderBook, PluginInterface, Provider, SymbolPrice } from '@barfinex/types';
 
 import {
+  BaseEvent,
   Detector,
   Account,
   Candle,
@@ -27,6 +28,8 @@ import {
   SubscriptionValue,
   DetectorEventType,
   Position,
+  EventSource,
+  assertEventSourceMatch,
 } from '@barfinex/types';
 import { SubscriptionType } from '@barfinex/types';
 
@@ -45,10 +48,20 @@ import * as Utils from './internal/detector.utils';
 // 🔹 маппер для свечей
 // import { candleMapper } from '@barfinex/utils';
 import { DetectorPositionManager } from './internal/detector.position-manager';
+import {
+  DetectorPerformanceMetrics,
+  DetectorPerformanceSnapshot,
+} from '../performance/detector-performance.metrics';
 
 @Injectable()
 export abstract class DetectorService {
   protected readonly logger = new Logger(DetectorService.name);
+  private static readonly READONLY_FLAG_VALUES = new Set([
+    '1',
+    'true',
+    'yes',
+    'on',
+  ]);
 
   public id!: string;
   public dispose!: () => Promise<void>;
@@ -58,6 +71,7 @@ export abstract class DetectorService {
 
   /** Менеджер позиций */
   protected readonly positions = new DetectorPositionManager();
+  protected readonly performanceMetrics = new DetectorPerformanceMetrics();
 
   protected _options: Detector;
   protected optionsPrev?: Detector;
@@ -79,6 +93,11 @@ export abstract class DetectorService {
 
   protected get providers(): Provider[] {
     return this._options.providers ?? [];
+  }
+
+  protected isReadOnlyMode(): boolean {
+    const value = String(process.env.DETECTOR_READONLY ?? '').toLowerCase().trim();
+    return DetectorService.READONLY_FLAG_VALUES.has(value);
   }
 
   constructor(
@@ -161,6 +180,27 @@ export abstract class DetectorService {
     providerRestApiUrl?: string;
     useSandbox?: boolean;
   }): Promise<{ position: Position; account: Account }> {
+    if (this.isReadOnlyMode()) {
+      throw new Error(
+        '[openPosition] blocked: DETECTOR_READONLY mode is enabled',
+      );
+    }
+
+    const quality = this.performanceMetrics.evaluateQualityGate(this.options);
+    if (!quality.allowed) {
+      this.registerEvent(DetectorEventType.RISK_TRIGGERED, {
+        symbols: [params.symbol],
+        reason: quality.reason ?? 'quality-gate',
+      });
+      this.registerEvent(DetectorEventType.QUALITY_GATE_STATE, {
+        symbols: [params.symbol],
+        allowed: false,
+        reason: quality.reason ?? 'quality-gate',
+        ts: Date.now(),
+      });
+      throw new Error(`[openPosition] blocked by quality gate: ${quality.reason ?? 'unknown'}`);
+    }
+
     const account = this.accounts.find(
       (a) => a.connectorType === params.connectorType && a.marketType === params.marketType,
     );
@@ -178,6 +218,23 @@ export abstract class DetectorService {
     });
 
     this.positions.add(result.position);
+    result.position.entryTime = Date.now();
+    this.performanceMetrics.onPositionOpened(result.position);
+    this.registerEvent(DetectorEventType.POSITION_OPENED, {
+      symbols: [params.symbol],
+      side: params.side,
+      quantity: params.quantity,
+      entryPrice: result.position.entryPrice,
+      connectorType: params.connectorType,
+      marketType: params.marketType,
+      ts: Date.now(),
+    });
+    this.registerEvent(DetectorEventType.QUALITY_GATE_STATE, {
+      symbols: [params.symbol],
+      allowed: true,
+      reason: null,
+      ts: Date.now(),
+    });
 
     return { position: result.position, account };
   }
@@ -190,6 +247,12 @@ export abstract class DetectorService {
     providerRestApiUrl?: string;
     useSandbox?: boolean;
   }): Promise<{ order: Order; account: Account }> {
+    if (this.isReadOnlyMode()) {
+      throw new Error(
+        '[closePosition] blocked: DETECTOR_READONLY mode is enabled',
+      );
+    }
+
     const account = this.accounts.find(
       (a) => a.connectorType === params.connectorType && a.marketType === params.marketType,
     );
@@ -215,6 +278,48 @@ export abstract class DetectorService {
       } as Position;
       this.positions.update(updated);
     }
+
+    const closePrice =
+      Number(result.order.priceClose ?? result.order.price ?? params.position.lastPrice ?? params.position.entryPrice);
+    const closeQuantity = Number(params.quantity ?? params.position.quantity);
+    await this.performanceMetrics.onPositionClosed({
+      detector: this.options,
+      position: params.position,
+      closePrice,
+      closeQuantity,
+      reason: 'detector_close_position',
+    });
+    const perfSnapshot = this.performanceMetrics.getSnapshot(this.options);
+    const pnlAbs = (params.position.side === TradeSide.LONG
+      ? closePrice - params.position.entryPrice
+      : params.position.entryPrice - closePrice) * closeQuantity;
+    const pnlPct =
+      params.position.entryPrice > 0
+        ? (pnlAbs / (params.position.entryPrice * Math.max(closeQuantity, 1e-9))) * 100
+        : 0;
+    this.registerEvent(DetectorEventType.POSITION_CLOSED, {
+      symbols: [params.position.symbol],
+      side: params.position.side,
+      closePrice,
+      quantity: closeQuantity,
+      pnlAbs,
+      pnlPct,
+      ts: Date.now(),
+    });
+    this.registerEvent(DetectorEventType.PERFORMANCE_SNAPSHOT, {
+      symbols: [params.position.symbol],
+      snapshot: perfSnapshot,
+      ts: Date.now(),
+    });
+    this.registerEvent(DetectorEventType.RISK_CONTEXT_UPDATED, {
+      symbols: [params.position.symbol],
+      recommendedSizeMultiplier: perfSnapshot.recommendedSizeMultiplier,
+      recommendedConfidenceFloor: perfSnapshot.recommendedConfidenceFloor,
+      stopTradingMode: perfSnapshot.stopTradingMode,
+      rollingDrawdownPct: perfSnapshot.rollingDrawdownPct,
+      rollingExpectancy: perfSnapshot.rollingExpectancy,
+      ts: Date.now(),
+    });
 
     return { order: result.order, account };
   }
@@ -264,11 +369,12 @@ export abstract class DetectorService {
     }
 
     // 2. Плагины из PluginDriverService
-    const driverPlugins = (this.pluginDriverService as any)?.getAllPlugins?.() as PluginInterface[] | undefined;
-    if (driverPlugins!.length > 0) {
-      this.registerPlugins(driverPlugins!);
+    const driverPlugins: PluginInterface[] =
+      (this.pluginDriverService as any)?.getAllPlugins?.() ?? [];
+    if (driverPlugins.length > 0) {
+      this.registerPlugins(driverPlugins);
       this.logger.log(
-        `[onModuleInit] Auto-registered ${driverPlugins!.length} plugin(s) from PluginDriverService`,
+        `[onModuleInit] Auto-registered ${driverPlugins.length} plugin(s) from PluginDriverService`,
       );
     } else {
       this.logger.debug(`[onModuleInit] No plugins found in PluginDriverService`);
@@ -340,6 +446,9 @@ export abstract class DetectorService {
     }
 
     const symbols = (payload.symbols as Symbol[] | undefined) ?? [];
+    const type = this.resolveDetectorSubscriptionType(eventType);
+    assertEventSourceMatch(type, EventSource.DETECTOR);
+    const eventPayload = this.buildDetectorSignalPayload(payload, symbols);
 
     // console.log("this.providers", this.providers?.map(p => `${p.key}@${p.restApiUrl}`));
     // console.log("this", this);
@@ -354,20 +463,87 @@ export abstract class DetectorService {
         if (!connector.isActive) continue;
 
         for (const market of connector.markets ?? []) {
+          const now = Date.now();
+          const event: BaseEvent<SubscriptionType, typeof eventPayload> = {
+            eventId: `detector:${this.options.sysname}:${eventType}:${now}`,
+            type,
+            source: EventSource.DETECTOR,
+            timestamp: now,
+            correlationId:
+              (payload.intentId as string | undefined) ??
+              (payload.requestId as string | undefined) ??
+              (payload.correlationId as string | undefined),
+            payload: eventPayload,
+          };
           const subscriptionValue: SubscriptionValue = {
-            value: { eventType, payload, symbols },
+            value: event,
             options: {
               connectorType: connector.connectorType,
               marketType: market.marketType,
               key: this.options.key,
-              updateMoment: Date.now(),
+              updateMoment: now,
             },
           };
-          this.client.emit(SubscriptionType.DETECTOR_EVENT, subscriptionValue);
+          this.client.emit(type, subscriptionValue);
         }
 
       }
     }
+  }
+
+  private resolveDetectorSubscriptionType(eventType: DetectorEventType): SubscriptionType {
+    switch (eventType) {
+      case DetectorEventType.ORDER_PLACED:
+      case DetectorEventType.POSITION_OPENED:
+        return SubscriptionType.DETECTOR_POSITION_OPEN_REQUEST;
+      case DetectorEventType.ORDER_FILLED:
+      case DetectorEventType.POSITION_CLOSED:
+        return SubscriptionType.DETECTOR_POSITION_CLOSE_REQUEST;
+      case DetectorEventType.TICK_RECEIVED:
+      case DetectorEventType.ORDERBOOK_UPDATED:
+      case DetectorEventType.BALANCE_UPDATED:
+      case DetectorEventType.CONFIG_UPDATED:
+      case DetectorEventType.INDICATOR_UPDATED:
+      case DetectorEventType.PERFORMANCE_SNAPSHOT:
+      case DetectorEventType.RISK_CONTEXT_UPDATED:
+      case DetectorEventType.QUALITY_GATE_STATE:
+      case DetectorEventType.DETECTOR_STARTED:
+        return SubscriptionType.DETECTOR_SIGNAL_UPDATED;
+      case DetectorEventType.DETECTOR_STOPPED:
+      case DetectorEventType.RISK_TRIGGERED:
+        return SubscriptionType.DETECTOR_SIGNAL_INVALIDATED;
+      default:
+        return SubscriptionType.DETECTOR_SIGNAL_GENERATED;
+    }
+  }
+
+  private buildDetectorSignalPayload(
+    payload: Record<string, unknown>,
+    symbols: Symbol[],
+  ): {
+    symbol: Symbol;
+    side: 'LONG' | 'SHORT';
+    confidence: number;
+    strategyId: string;
+  } {
+    const symbolCandidate = symbols[0] ?? (payload.symbol as Symbol | undefined);
+    const symbol =
+      symbolCandidate && typeof symbolCandidate === 'object' && 'name' in symbolCandidate
+        ? (symbolCandidate as Symbol)
+        : ({ name: String(payload.symbol ?? 'UNKNOWN') } as Symbol);
+
+    const sideRaw = String(payload.side ?? payload.direction ?? 'LONG').toUpperCase();
+    const side: 'LONG' | 'SHORT' = sideRaw === 'SHORT' ? 'SHORT' : 'LONG';
+
+    const rawConfidence = Number(payload.confidence ?? payload.score ?? 0);
+    const confidence = Number.isFinite(rawConfidence) ? rawConfidence : 0;
+
+    return {
+      symbol,
+      side,
+      confidence,
+      strategyId: this.options.sysname || this.constructor.name,
+    };
   }
 
   // ===================== Bindings =====================
@@ -542,6 +718,8 @@ export abstract class DetectorService {
   getName = Utils.getName.bind(this);
   getStringTime = Utils.getStringTime.bind(this);
   sendMessage = Utils.sendMessage.bind(this);
+  getPerformanceSnapshot = (): DetectorPerformanceSnapshot =>
+    this.performanceMetrics.getSnapshot(this.options);
 
   // ===================== Hooks (стратегии переопределяют) =====================
 

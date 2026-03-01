@@ -7,26 +7,12 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { OrderService } from '@barfinex/orders';
 import { ConfigModule } from '@nestjs/config';
 import { PluginService } from './plugin.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
     imports: [
         ConfigModule, // глобальный конфиг (dotenv и пр.)
         ConnectorModule,
         KeyModule,
-
-        // ✅ Подключение MongoDB (единое на всё приложение)
-        TypeOrmModule.forRoot({
-            type: 'mongodb',
-            host: process.env.MONGO_HOST,
-            port: Number(process.env.MONGO_PORT || 27017),
-            username: process.env.MONGO_ROOT_USERNAME,
-            password: process.env.MONGO_ROOT_PASSWORD,
-            database: process.env.MONGO_DATABASE,
-            authSource: 'admin',
-            autoLoadEntities: true, // автоматически регистрирует все *.entity.ts
-            synchronize: true, // ⚠️ только для dev (в проде отключить!)
-        }),
 
         // Клиент для общения с провайдером через Redis
         ClientsModule.register([

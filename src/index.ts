@@ -5,4 +5,6 @@ export * from './detector-core.module';
 export * from './detector.controller';
 export * from './detector-manager.service';
 export * from './detector-plugin.service';
+export * from './performance/detector-performance.metrics';
+export * from './signal';
 // export * from './detector';

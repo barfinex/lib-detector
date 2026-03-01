@@ -331,6 +331,20 @@ export async function onOrderBookUpdateHandler(
       orderbook,
     );
   }
+  const bestBid = Number(orderbook.bids?.[0]?.price ?? 0);
+  const bestAsk = Number(orderbook.asks?.[0]?.price ?? 0);
+  const spreadPct =
+    bestBid > 0 && bestAsk > 0 ? ((bestAsk - bestBid) / bestBid) * 100 : 0;
+  this.registerEvent(DetectorEventType.ORDERBOOK_UPDATED, {
+    symbols: [{ name: orderbook.symbol.name }],
+    bestBid,
+    bestAsk,
+    spreadPct,
+    depth: (orderbook.bids?.length ?? 0) + (orderbook.asks?.length ?? 0),
+    connectorType,
+    marketType,
+    ts: Date.now(),
+  });
 }
 
 export async function onAccountUpdateHandler(
@@ -388,6 +402,24 @@ export async function onAccountUpdateHandler(
             pluginContext,
           );
           this.updateAccount(updatedAccount);
+          const totalWalletBalance = (updatedAccount.assets ?? []).reduce(
+            (sum, a) => sum + Number(a.walletBalance ?? 0),
+            0,
+          );
+          const totalAvailableBalance = (updatedAccount.assets ?? []).reduce(
+            (sum, a) => sum + Number(a.availableBalance ?? 0),
+            0,
+          );
+          this.registerEvent(DetectorEventType.BALANCE_UPDATED, {
+            symbols: [],
+            connectorType: updatedAccount.connectorType,
+            marketType: updatedAccount.marketType,
+            totalWalletBalance,
+            totalAvailableBalance,
+            positionsCount: updatedAccount.positions?.length ?? 0,
+            ordersCount: updatedAccount.orders?.length ?? 0,
+            ts: Date.now(),
+          });
         }
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -520,6 +552,15 @@ export function upsertIndicator(
   this.registerEvent(DetectorEventType.CONFIG_UPDATED, {
     symbols: [{ name: symbol.name }],
     scope: 'indicator',
+    interval,
+    key,
+    prev,
+    next: value,
+    ...(meta ?? {}),
+    ts: Date.now(),
+  });
+  this.registerEvent(DetectorEventType.INDICATOR_UPDATED, {
+    symbols: [{ name: symbol.name }],
     interval,
     key,
     prev,

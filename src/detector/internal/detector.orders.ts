@@ -1,13 +1,24 @@
 import type { Order, Provider, Symbol, OrderSide, ConnectorType, MarketType, Account, OrderPermissibleQuantity } from '@barfinex/types';
 
-export async function openOrder(this: any, order: Order, provider: Provider): Promise<Order> {
+function isReadOnlyMode(): boolean {
+  const value = String(process.env.DETECTOR_READONLY ?? '').toLowerCase().trim();
+  return value === '1' || value === 'true' || value === 'yes' || value === 'on';
+}
 
-  const { order: orderResult, account, openOrderMoment } = await this.orderService.openOrder({ order, openOrderMoment: this.openOrderMoment, account: undefined, providerRestApiUrl: provider.restApiToken });
+export async function openOrder(this: any, order: Order, provider: Provider): Promise<Order> {
+  if (isReadOnlyMode()) {
+    throw new Error('[openOrder] blocked: DETECTOR_READONLY mode is enabled');
+  }
+
+  const { order: orderResult, account, openOrderMoment } = await this.orderService.openOrder({ order, openOrderMoment: this.openOrderMoment, account: undefined, providerRestApiUrl: provider.apiToken });
   this.updateAccount(account); this.openOrderMoment = openOrderMoment; return { ...orderResult };
 
 }
 
 export async function closeOrder(this: any, order: Order, closePrice: number, provider: Provider): Promise<Order> {
+  if (isReadOnlyMode()) {
+    throw new Error('[closeOrder] blocked: DETECTOR_READONLY mode is enabled');
+  }
 
   const { order: orderResult, account } = await this.orderService.closeOrder({ order, closePrice, providerRestApiUrl: provider.restApiUrl });
   this.onOrderCloseHandler(order, order.connectorType, order.marketType); this.updateAccount(account); return { ...orderResult };
@@ -29,9 +40,12 @@ export function isOpenPosition(this: any, symbol: Symbol, side?: OrderSide): boo
 }
 
 export async function changeLeverage(this: any, options: { connectorType: ConnectorType; marketType: MarketType; symbol: Symbol; newLeverage: number; provider: Provider }): Promise<Symbol> {
+  if (isReadOnlyMode()) {
+    throw new Error('[changeLeverage] blocked: DETECTOR_READONLY mode is enabled');
+  }
 
   const { connectorType, marketType, symbol, newLeverage, provider } = options;
-  this.connectorService.changeAccountSymbolLeverage({ providerRestApiUrl: provider.restApiToken, connectorType, marketType, symbol, newLeverage });
+  this.connectorService.changeAccountSymbolLeverage({ providerRestApiUrl: provider.apiToken, connectorType, marketType, symbol, newLeverage });
   return { ...symbol, leverage: newLeverage };
 
 }

@@ -4,6 +4,8 @@ import {
   SubscriptionValue,
   DetectorEventType,
   Symbol,
+  EventSource,
+  assertEventSourceMatch,
 } from '@barfinex/types';
 
 /**
@@ -15,13 +17,16 @@ import {
 export function registerEvent(
   this: DetectorService,
   eventType: DetectorEventType,
-  payload: { eventType: DetectorEventType, payload: any, symbols?: Symbol[]; },
+  payload: { eventType: DetectorEventType; payload: Record<string, unknown>; symbols?: Symbol[] },
 ): void {
 
   if (payload?.eventType != DetectorEventType.TICK_RECEIVED) {
-    this.logger.error('❌ SubscriptionType.DETECTOR_EVENT is undefined');
+    this.logger.error('❌ Detector event skipped: only tick is allowed in legacy bridge');
     return;
   }
+  const type = SubscriptionType.DETECTOR_SIGNAL_GENERATED;
+  assertEventSourceMatch(type, EventSource.DETECTOR);
+
 
 
   if (!this.isEmitToRedisEnabled) {
@@ -51,12 +56,11 @@ export function registerEvent(
         }
 
         for (const symbol of symbols) {
+          // Legacy bridge: this path emits a non-standard payload shape.
+          // Keep runtime compatibility while satisfying the strict SubscriptionValue typing.
+          const legacyValue = ({ eventType, payload, symbols } as unknown) as any;
           const subscriptionValue: SubscriptionValue = {
-            value: {
-              eventType,
-              payload,
-              symbols,
-            },
+            value: legacyValue,
             options: {
               connectorType: connector.connectorType,
               marketType: market.marketType,
@@ -66,10 +70,10 @@ export function registerEvent(
           };
 
           this.logger.log(
-            `✅ Emitting DETECTOR_EVENT (${eventType}) for symbol=${symbol.name}, connector=${connector.connectorType}, market=${market.marketType}`,
+            `✅ Emitting ${type} (${eventType}) for symbol=${symbol.name}, connector=${connector.connectorType}, market=${market.marketType}`,
           );
 
-          this.client.emit(SubscriptionType.DETECTOR_EVENT, subscriptionValue);
+          this.client.emit(type, subscriptionValue);
         }
       }
     }
